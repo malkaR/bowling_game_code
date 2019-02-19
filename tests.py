@@ -217,6 +217,12 @@ class TestFrame(unittest.TestCase):
         with self.assertRaises(ValueError, msg=msg):
             frame.add_roll(5)
 
+    def test_exceed_max_roll_validation_error(self):
+        frame = Frame()
+        msg = "The total number of pins rolled can't exceed 10"
+        with self.assertRaises(ValueError, msg=msg):
+            frame.add_roll(11)
+
     def test_add_third_roll_validation_error(self):
         frame = Frame()
         frame.add_roll(4)

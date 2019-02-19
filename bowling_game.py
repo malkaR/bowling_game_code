@@ -110,13 +110,19 @@ class Frame:
             return self.rolls[2].pins
         return 0
 
+    def is_last_frame(self):
+        """Return True if this is the last frame of the
+        game, and False otherwise"""
+        if self.frame_number() == MAX_FRAME_NUMBER:
+            return True
+        return False
+
     def frame_score(self):
         """Get the score for the current frame,
         not counting any previous frames in the sequence."""
-        pins_knocked_one = self.first_roll()
-        pins_knocked_two = self.second_roll()
-        pins_knocked_three = self.third_roll()
-        total_pins = pins_knocked_one + pins_knocked_two
+        first_roll = self.first_roll()
+        third_roll = self.third_roll()
+        total_pins = first_roll + self.second_roll()
 
         if total_pins < MAX_NUMBER_PINS:
             return total_pins
@@ -134,26 +140,31 @@ class Frame:
         except AttributeError:
             twice_next_first_roll = 0
 
-        if pins_knocked_one == MAX_NUMBER_PINS:
-            # score_type is a strike
-            if self.frame_number() == MAX_FRAME_NUMBER:
+        if MAX_NUMBER_PINS in (first_roll, total_pins):
+            # score_type is a strike or a spare
+            if self.is_last_frame():
                 # if it's the last frame, allow for a 2nd and 3rd roll
-                return pins_knocked_one + pins_knocked_two + pins_knocked_three
+                return total_pins + third_roll
+
+        if first_roll == MAX_NUMBER_PINS:
+            # score type is a strike and it is not the last frame
             if next_first_roll == MAX_NUMBER_PINS:
                 # score type of next frame is a strike, too
                 if self.next_frame.frame_number() == MAX_FRAME_NUMBER:
                     # if the next frame is the last, count its second roll
-                    return (pins_knocked_one +
+                    return (first_roll +
                             next_first_roll + next_second_roll)
-                return (pins_knocked_one +
+                # count the next two frames with 1 roll each if two
+                # consecutive strikes are rolled but it's not the
+                # second to last frame
+                return (first_roll +
                         next_first_roll + twice_next_first_roll)
-            return pins_knocked_one + next_first_roll + next_second_roll
+            # count the two rolls of the next frame for a strike
+            return first_roll + next_first_roll + next_second_roll
 
         if total_pins == MAX_NUMBER_PINS:
-            # score_type is a spare
-            if self.frame_number() == MAX_FRAME_NUMBER:
-                # if it's the last frame, allow for a 3rd roll
-                return pins_knocked_one + pins_knocked_two + pins_knocked_three
+            # score_type is a spare and it is not the
+            # last frame
             return total_pins + next_first_roll
 
         return 0
